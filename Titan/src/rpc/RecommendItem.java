@@ -14,16 +14,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Servlet implementation class SearchItem
+ * Servlet implementation class RecommendItem
  */
-@WebServlet("/search")
-public class SearchItem extends HttpServlet {
+@WebServlet("/recommendation")
+public class RecommendItem extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public SearchItem() {
+    public RecommendItem() {
         super();
         // TODO Auto-generated constructor stub
     }
@@ -32,15 +32,34 @@ public class SearchItem extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		response.addHeader("Access-Control-Allow-Originl", "*");
+		response.setContentType("application/json");
+		
+		String name = "";
+		if(request.getParameter("username") != null) {
+			name = request.getParameter("username");
+		}
 		JSONArray array = new JSONArray();
 		try {
-			array.put(new JSONObject().put("username", "abcd"));
-			array.put(new JSONObject().put("username", "1234"));
-		} catch (JSONException e) {
+			JSONObject obj = new JSONObject();
+			obj.put("username", "abcd");
+			obj.put("address", "China");
+			obj.put("course", "fuck");
+			array.put(obj);
+			JSONObject obj2 = new JSONObject();
+			obj2.put("username", "asdf");
+			obj2.put("address", "bee");
+			obj2.put("course", "low");
+			array.put(obj2);
+			//obj.put("username", name);
+		} catch(JSONException e) {
 			e.printStackTrace();
 		}
-		RpcHelper.writeJsonArray(response, array);
-
+		PrintWriter out = response.getWriter();
+		out.print(array);
+		out.flush();
+		out.close();
 	}
 
 	/**
