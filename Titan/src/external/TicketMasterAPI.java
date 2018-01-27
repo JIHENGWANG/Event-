@@ -32,16 +32,80 @@ public class TicketMasterAPI {
 		return term;
 	}
 	
-	private JSONObject getVenue(JSONObject event) throws JSONException {
+	private String getAddress(JSONObject event) throws JSONException {
+		if (!event.isNull("_embedded")) {
+			JSONObject embedded = event.getJSONObject("_embedded");
+			if (!embedded.isNull("venues")) {
+				JSONArray venues = embedded.getJSONArray("venues");
+				if (venues.length() > 0) {
+					JSONObject venue = venues.getJSONObject(0);
+					if (venue != null) {
+						StringBuilder sb = new StringBuilder();
+						if (!venue.isNull("address")) {
+							JSONObject address = venue.getJSONObject("address");
+							if (!address.isNull("line1")) {
+								sb.append(address.getString("line1"));
+							}
+							if (!address.isNull("line2")) {
+								sb.append(address.getString("line2"));
+							}
+							if (!address.isNull("line3")) {
+								sb.append(address.getString("line3"));
+							}
+							sb.append(",");
+						}
+						if (!venue.isNull("city")) {
+							JSONObject city = venue.getJSONObject("city");
+							if (!city.isNull("name")) {
+								sb.append(city.getString("name"));
+							}
+						}
+						return sb.toString();
+					}
+				}
+			}
+		}
 		return null;
 	}
 
 	private String getImageUrl(JSONObject event) throws JSONException {
+		if(!event.isNull("images")) {
+			JSONArray array = event.getJSONArray("images");
+			for(int i = 0; i < array.length(); i++) {
+				JSONObject image = array.getJSONObject(i);
+				if(!image.isNull("url")) {
+					return image.getString("url");
+				}
+			}
+		}
 		return null;
 	}
 
 	private Set<String> getCategories(JSONObject event) throws JSONException {
+		if (!event.isNull("classifications")) {
+			JSONArray obj = event.getJSONArray("classifications");
+			Set<String> categories = new HashSet<>();
+			for (int i = 0; i < obj.length(); i++) {
+				JSONObject classification = obj.getJSONObject(i);
+				if (!classification.isNull("segment")) {
+					JSONObject segment = classification.getJSONObject("segment");
+					if (!segment.isNull("name")) {
+						String name = segment.getString("name");
+						categories.add(name);
+					}
+				}
+			}
+			return categories;
+		}
 		return null;
+	}
+	
+	private String getStringFields(JSONObject obj, String key) throws JSONException {
+		return obj.isNull(key) ? null : obj.getString(key);
+	}
+	
+	private double getDoubleFields(JSONObject obj, String key) throws JSONException {
+		return obj.isNull(key) ? 0.0 : obj.getDouble(key);
 	}
 
 	// Convert JSONArray to a list of item objects.
@@ -51,20 +115,14 @@ public class TicketMasterAPI {
 			JSONObject object = events.getJSONObject(i);
 			// Parse json object fetched from Yelp API specifically.
 			ItemBuilder builder = new ItemBuilder();
-			// Builder pattern gives us flexibility to construct an item.
-			if(!object.isNull("name")) {
-				builder.setName(object.getString("name"));
-			}
-			if(!object.isNull("id")) {
-				builder.setName(object.getString("id"));
-			}
-			if(!object.isNull("url")) {
-				builder.setName(object.getString("url"));
-			}
-			if(!object.isNull("distance")) {
-				builder.setDistance(object.getDouble("distance"));
-			}
-			JSONObject venue = getVenue(object);
+		
+			builder.setName(getStringFields(object, "name"));
+			builder.setItemId(getStringFields(object, "id"));
+			builder.setUrl(getStringFields(object, "url"));
+			builder.setRating(getDoubleFields(object, "rating"));
+			builder.setDistance(getDoubleFields(object, "distance"));
+			
+			builder.setAddress(getAddress(object));
 			builder.setImageUrl(getImageUrl(object));
 			builder.setCategories(getCategories(object));
 		

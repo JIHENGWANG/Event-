@@ -15,11 +15,6 @@ public class Item {
 	private String imageUrl;
 	private String url;
 	private double distance;
-	private String city;
-	private String country;
-	private String state;
-	private String zipcode;
-	
 	
 	private Item(ItemBuilder builder) {
 		this.itemId = builder.itemId;
@@ -42,26 +37,11 @@ public class Item {
 		private String imageUrl;
 		private String url;
 		private double distance;
-		private String city;
-		private String country;
-		private String state;
-		private String zipcode;
 		
 		public Item build() {
 			return new Item(this);
 		}
-		public void setCity(String city) {
-			this.city = city;
-		}
-		public void setCountry(String country) {
-			this.country = country;
-		}
-		public void setState(String state) {
-			this.state = state;
-		}
-		public void setZipcode(String zipcode) {
-			this.zipcode = zipcode;
-		}
+
 		public void setItemId(String itemId) {
 			this.itemId = itemId;
 		}
