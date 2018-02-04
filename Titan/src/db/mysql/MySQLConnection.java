@@ -99,6 +99,7 @@ public class MySQLConnection implements DBConnection {
 		}
 		return favoriteItems;
 
+
 	}
 
 	@Override
@@ -141,23 +142,24 @@ public class MySQLConnection implements DBConnection {
 	@Override
 	public Set<String> getCategories(String itemId) {
 		// TODO Auto-generated method stub
-		if(conn == null) {
-			return new HashSet<> ();
+		if (conn == null) {
+			return null;
 		}
-		Set<String> categories = new HashSet<> ();
+		Set<String> categories = new HashSet<>();
 		try {
-			String sql = "SElECT item_id, category FROM categories WHERE item_id = ?";
+			String sql = "SELECT category from categories WHERE item_id = ? ";
 			PreparedStatement statement = conn.prepareStatement(sql);
 			statement.setString(1, itemId);
 			ResultSet rs = statement.executeQuery();
-			while(rs.next()) {
+			while (rs.next()) {
 				categories.add(rs.getString("category"));
 			}
-		}catch(SQLException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
 		}
 		return categories;
 	}
+
 
 	@Override
 	public List<Item> searchItems(double lat, double lon, String term) {
@@ -175,34 +177,35 @@ public class MySQLConnection implements DBConnection {
 	@Override
 	public void saveItem(Item item) {
 		// TODO Auto-generated method stub
-		if(conn == null) {
+		if (conn == null) {
 			return;
 		}
 		try {
-			//insert data into items table
-			//IGNORE: if item exist, then ignore
-			String qsl = "INSERT IGNORE INTO items VALUES (?,?,?,?,?,?,?)";
-			PreparedStatement statement = conn.prepareStatement(qsl);
-			statement.setString(1,  item.getItemId());
-			statement.setString(2,  item.getName());
-			statement.setDouble(3,  item.getRating());
-			statement.setString(4,  item.getAddress());
-			statement.setString(5,  item.getImageUrl());
-			statement.setString(6,  item.getUrl());
-			statement.setDouble(7,  item.getDistance());
+			// First, insert into items table
+			String sql = "INSERT IGNORE INTO items VALUES (?,?,?,?,?,?,?)";
+
+			PreparedStatement statement = conn.prepareStatement(sql);
+			statement.setString(1, item.getItemId());
+			statement.setString(2, item.getName());
+			statement.setDouble(3, item.getRating());
+			statement.setString(4, item.getAddress());
+			statement.setString(5, item.getImageUrl());
+			statement.setString(6, item.getUrl());
+			statement.setDouble(7, item.getDistance());
 			statement.execute();
-			
-			//insert data into category table
-			qsl = "INSERT IGNORE INTO categories VALUES (?,?)";
-			statement = conn.prepareStatement(qsl);
-			for(String category: item.getCategories()) {
-				statement.setString(1,  item.getItemId());
-				statement.setString(2,  category);
+
+			// Second, update categories table for each category.
+			sql = "INSERT IGNORE INTO categories VALUES (?,?)";
+			for (String category : item.getCategories()) {
+				statement = conn.prepareStatement(sql);
+				statement.setString(1, item.getItemId());
+				statement.setString(2, category);
 				statement.execute();
 			}
-		}catch(SQLException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+
 		
 	}
 
